@@ -14,114 +14,108 @@ const ContactForm = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const validateEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
+  const validateForm = () => {
+    if (!formData.name || !formData.email || !formData.phone || !formData.message) {
+      setStatus("❌ All fields are required.");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setStatus("❌ Please enter a valid email address.");
+      return false;
+    }
+
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      setStatus("❌ Please enter a valid 10-digit phone number.");
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Frontend Validation
-    if (!formData.name || !formData.email || !formData.phone || !formData.message) {
-      setStatus("⚠️ Please fill all the fields.");
-      return;
-    }
-    if (!validateEmail(formData.email)) {
-      setStatus("⚠️ Please enter a valid email address.");
-      return;
-    }
+    if (!validateForm()) return;
+
+    setLoading(true);
+    setStatus("");
 
     try {
-      setLoading(true);
-      setStatus("");
-
-      const res = await fetch("https://vernanbackend.ezlab.in/api/contact-us/", {
+      const response = await fetch("https://vernanbackend.ezlab.in/api/contact-us/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
-      if (res.ok) {
+      if (response.ok) {
         setStatus("✅ Form Submitted Successfully!");
         setFormData({ name: "", email: "", phone: "", message: "" });
       } else {
-        setStatus("❌ Failed to submit form. Try again.");
+        setStatus("⚠️ Submission failed. Please try again.");
       }
     } catch (error) {
-      console.error("Error:", error);
-      setStatus("❌ Network error. Please try again.");
+      setStatus("❌ Network error. Please check your connection.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-          Contact Us
-        </h2>
+    <div className="flex justify-center items-center py-12 px-4 bg-gray-50">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-lg space-y-5"
+      >
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">Contact Us</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email Address"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Phone Number"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-          <textarea
-            name="message"
-            placeholder="Your Message"
-            rows="4"
-            value={formData.message}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          ></textarea>
+        <input
+          type="text"
+          name="name"
+          placeholder="Your Name"
+          value={formData.name}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition duration-300"
-          >
-            {loading ? "Submitting..." : "Submit"}
-          </button>
-        </form>
+        <input
+          type="email"
+          name="email"
+          placeholder="Your Email"
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
 
-        {status && (
-          <p
-            className={`mt-4 text-center font-medium ${
-              status.includes("✅")
-                ? "text-green-600"
-                : status.includes("⚠️")
-                ? "text-yellow-600"
-                : "text-red-600"
-            }`}
-          >
-            {status}
-          </p>
-        )}
-      </div>
+        <input
+          type="tel"
+          name="phone"
+          placeholder="Your Phone"
+          value={formData.phone}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+
+        <textarea
+          name="message"
+          placeholder="Your Message"
+          value={formData.message}
+          onChange={handleChange}
+          className="w-full border border-gray-300 rounded-lg p-3 h-32 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition font-semibold"
+        >
+          {loading ? "Submitting..." : "Submit"}
+        </button>
+
+        {status && <p className="text-center text-sm mt-4">{status}</p>}
+      </form>
     </div>
   );
 };
